@@ -3,6 +3,10 @@ import random
 
 import requests
 
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 user_agents = [
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.110 Safari/537.36",
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.110 Safari/537.36",
@@ -16,21 +20,25 @@ url = 'https://movie.douban.com/subject/35041292/'  # construct the URL
 headers = {'User-Agent': random.choice(user_agents)}  # random user agent
 
 content = None  # Initialize content outside the try block
-
 try:
     response = requests.get(url, headers=headers, allow_redirects=False)  # get request
     response.raise_for_status()  # raise an exception for 4XX and 5XX status codes
     if response.status_code == 200:  # if the request is successful
         content = response.text  # extract the content
+    else:
+        logger.error("Failed to fetch the webpage. Status code: %d", response.status_code)
 except requests.exceptions.HTTPError as e:
-    print(f"HTTP error occurred: {e}")
+    logger.error("HTTP error occurred: %s", e)
 except requests.exceptions.ConnectionError as e:
-    print(f"Connection error occurred: {e}")
+    logger.error("Connection error occurred: %s", e)
 except requests.exceptions.Timeout as e:
-    print(f"Timeout error occurred: {e}")
+    logger.error("Timeout error occurred: %s", e)
 except requests.exceptions.RequestException as e:
-    print(f"An error occurred: {e}")
+    logger.error("An error occurred: %s", e)
 except Exception as e:
-    print(f"An error occurred: {e}")
+    logger.error("An error occurred: %s", e)
 
-print(content)
+if content:
+    print(content)
+else:
+    logger.warning("No content fetched.")

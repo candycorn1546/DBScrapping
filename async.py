@@ -10,18 +10,18 @@ import pandas as pd
 from googletrans import Translator
 import time
 import ssl
-import logging
 
-proxies = "http://54.193.86.81:3128"
+
+
+logging.basicConfig(filename='error.log', level=logging.ERROR)  # set logging configuration
 def clear_files(file_paths):
     for file_path in file_paths:
         if os.path.exists(file_path):
             os.remove(file_path)
         open(file_path, "a").close()
 
-
 file_paths = ["success.txt", "failed_at_2.txt", "302.txt"]
-
+clear_files(file_paths)
 
 def load_existing_data(csv_file):
     if os.path.exists(csv_file):
@@ -62,7 +62,7 @@ async def get_movie_info(movie_id, session):  # function to get the movie info
     retry_count = 0
     max_retries = 3
     while retry_count < max_retries:
-        async with session.get(url, headers=headers, timeout=100, allow_redirects=False,proxy=proxies) as response:
+        async with session.get(url, headers=headers, timeout=100, allow_redirects=False) as response:
             if response.status == 200:  # if the request is successful
                 content = await response.text()  # extract the content
                 soup = BeautifulSoup(content, "html.parser")  # parse the content
@@ -77,6 +77,7 @@ async def get_movie_info(movie_id, session):  # function to get the movie info
                 rating_tag = soup.find('strong', class_='ll rating_num', property='v:average')
                 language = language_span.find_next_sibling(string=True).strip()
                 if language == '美国 / 英国' or int(votes) < 60000 or year < 2000 or rating_tag is None:
+                    print("failed @ 2nd")
                     with open("failed_at_2.txt", "a") as file:
                         file.write(f"{movie_id}\n")
                     return None
@@ -89,6 +90,7 @@ async def get_movie_info(movie_id, session):  # function to get the movie info
                                                            src='zh-cn', dest='en').text
                 with open("success.txt", "a") as file:
                     file.write(f"{translated_title},{movie_id}\n")
+                print("success")
                 return {
                     'Title': title,
                     'English Title': translated_title,
@@ -165,14 +167,13 @@ async def main(i, j):
 
 
 if __name__ == "__main__":
-    start_movie_id = random.randint(25000000, 35000000)  # start movie id
-    end_movie_id = start_movie_id + 2000000  # end movie id
+    start_movie_id = random.randint(25000000, 36000000)  # start movie id
+    end_movie_id = start_movie_id + 1000000  # end movie id
     print(f"start id: {start_movie_id}")
-    batch_size = 5000  # batch size
+    batch_size = 7500  # batch size
     total_movies = end_movie_id - start_movie_id + 1  # total movies
     num_batches = math.ceil(total_movies / batch_size)  # number of batches
     for batch_number in range(num_batches):
-        clear_files(file_paths)
         i = start_movie_id + batch_number * batch_size
         j = min(start_movie_id + (batch_number + 1) * batch_size, end_movie_id + 1)
         asyncio.run(main(i, j))
