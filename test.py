@@ -15,14 +15,22 @@ user_agents = [
 url = 'https://movie.douban.com/subject/35041292/'  # construct the URL
 headers = {'User-Agent': random.choice(user_agents)}  # random user agent
 
-try:
-    response = requests.get(url, headers=headers)  # get request
-    response.raise_for_status()  # raise an exception for 4XX and 5XX status codes
+content = None  # Initialize content outside the try block
 
+try:
+    response = requests.get(url, headers=headers, allow_redirects=False)  # get request
+    response.raise_for_status()  # raise an exception for 4XX and 5XX status codes
     if response.status_code == 200:  # if the request is successful
         content = response.text  # extract the content
-        print(content)
 except requests.exceptions.HTTPError as e:
     print(f"HTTP error occurred: {e}")
+except requests.exceptions.ConnectionError as e:
+    print(f"Connection error occurred: {e}")
+except requests.exceptions.Timeout as e:
+    print(f"Timeout error occurred: {e}")
+except requests.exceptions.RequestException as e:
+    print(f"An error occurred: {e}")
 except Exception as e:
     print(f"An error occurred: {e}")
+
+print(content)
