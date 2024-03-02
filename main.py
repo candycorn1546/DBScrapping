@@ -1,4 +1,3 @@
-import logging
 import math
 import os
 import asyncio
@@ -7,21 +6,22 @@ import random
 import certifi
 from bs4 import BeautifulSoup
 import pandas as pd
+from fp.fp import FreeProxy
 from googletrans import Translator
 import time
 import ssl
+import logging
 
 
-
-logging.basicConfig(filename='error.log', level=logging.ERROR)  # set logging configuration
 def clear_files(file_paths):
     for file_path in file_paths:
         if os.path.exists(file_path):
             os.remove(file_path)
         open(file_path, "a").close()
 
-file_paths = ["success.txt", "failed_at_2.txt", "302.txt"]
-clear_files(file_paths)
+
+file_paths = ["success.txt", "failed_at_2.txt", "302.txt", "failed_at_1.txt", "404.txt"]
+
 
 def load_existing_data(csv_file):
     if os.path.exists(csv_file):
@@ -37,7 +37,7 @@ async def fetch(session, movie_id):  # function to fetch the page content
         return await response.text()  # return the content
 
 
-async def get_movie_info(movie_id, session):  # function to get the movie info
+async def get_movie_info(movie_id, session):
     user_agents = [
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.110 Safari/537.36",
         "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.110 Safari/537.36",
@@ -54,30 +54,31 @@ async def get_movie_info(movie_id, session):  # function to get the movie info
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36"
     ]  # user agents
     await asyncio.sleep(random.uniform(30, 50))  # sleep for a random time
-
     logging.basicConfig(filename='error.log', level=logging.ERROR)  # set logging configuration
-
-    url = f'https://movie.douban.com/subject/{movie_id}/'  # construct the URL
-    headers = {'User-Agent': random.choice(user_agents)}  # random user agent
     retry_count = 0
     max_retries = 3
     while retry_count < max_retries:
-        async with session.get(url, headers=headers, timeout=100, allow_redirects=False) as response:
-            if response.status == 200:  # if the request is successful
+        headers = {'User-Agent': random.choice(user_agents)}
+        url = f'https://movie.douban.com/subject/{movie_id}/'  # construct the URL
+        async with session.get(url, headers=headers, allow_redirects=False) as response:
+            if response.status == 200:
                 content = await response.text()  # extract the content
                 soup = BeautifulSoup(content, "html.parser")  # parse the content
                 language_span = soup.find('span', class_='pl', string='制片国家/地区:')  # find the language span
                 episode_span = soup.find('span', class_='pl', string='集数:')  # find the episode span
                 votes_span = soup.find('span', property='v:votes')  # find the votes span
                 if votes_span is None or language_span is None or episode_span is None:
+                    with open("failed_at_1.txt", "a") as file:
+                        file.write(f"{movie_id}\n")
                     return None
                 votes = int(votes_span.text.strip())
                 year_span = soup.find('span', class_='year')  # find the year span
                 year = int(year_span.text.strip().strip('()'))
                 rating_tag = soup.find('strong', class_='ll rating_num', property='v:average')
                 language = language_span.find_next_sibling(string=True).strip()
-                if language == '美国 / 英国' or int(votes) < 60000 or year < 2000 or rating_tag is None:
-                    print("failed @ 2nd")
+                if language == '美国 / 英国' or int(
+                        votes) < 60000 or year < 2000 or rating_tag is None or language == '美国' or language == '英国':
+                    print("failed at 2")
                     with open("failed_at_2.txt", "a") as file:
                         file.write(f"{movie_id}\n")
                     return None
@@ -85,12 +86,15 @@ async def get_movie_info(movie_id, session):  # function to get the movie info
                 title = title_span.text.strip()
                 rating = float(rating_tag.text.strip())  # extract the rating
                 translator = Translator()  # create a translator object
-                translated_title = translator.translate(title, src='zh-cn', dest='en').text
                 translated_language = translator.translate(language_span.find_next_sibling(string=True).strip(),
                                                            src='zh-cn', dest='en').text
-                with open("success.txt", "a") as file:
-                    file.write(f"{translated_title},{movie_id}\n")
-                print("success")
+                translated_title = translator.translate(title, src='zh-cn', dest='en').text
+                pl_element = soup.find('span', class_='pl', string='又名:')
+                if pl_element is not None:
+                    next_sibling = pl_element.find_next_sibling(string=True)
+                    if next_sibling is not None:
+                        translated_title = next_sibling.strip().split('/')[-1].strip()
+                print('success: ', translated_title)
                 return {
                     'Title': title,
                     'English Title': translated_title,
@@ -98,9 +102,12 @@ async def get_movie_info(movie_id, session):  # function to get the movie info
                     'Country': translated_language,
                     'Rating': rating,
                     'Number of Raters': votes_span.text.strip(),
-                    'URL': url
+                    'URL': url,
+                    'ID': movie_id
                 }
             elif response.status == 404:
+                with open("404.txt", "a") as file:
+                    file.write(f"{movie_id}\n")
                 return None
             elif response.status == 301:
                 new_url = response.headers['Location']
@@ -109,6 +116,7 @@ async def get_movie_info(movie_id, session):  # function to get the movie info
                 retry_count += 1
                 continue
             elif response.status == 302:
+                print('302')
                 retry_count += 1
                 if retry_count < max_retries:
                     await asyncio.sleep(5)
@@ -132,7 +140,7 @@ async def main(i, j):
         movie_data = []
         ssl_context = ssl.create_default_context(cafile=certifi.where())
         async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=ssl_context)) as session:
-            tasks = [get_movie_info(movie_id, session) for movie_id in range(i, j)]
+            tasks = [get_movie_info(movie_id, session) for movie_id in range(i, j)]  # pass proxy
             movie_data = await asyncio.gather(*tasks)
             try:
                 new_movie_data = [data for data in movie_data if
@@ -167,13 +175,14 @@ async def main(i, j):
 
 
 if __name__ == "__main__":
-    start_movie_id = random.randint(25000000, 36000000)  # start movie id
-    end_movie_id = start_movie_id + 1000000  # end movie id
+    start_movie_id = 0
+    end_movie_id = 37000000
     print(f"start id: {start_movie_id}")
-    batch_size = 7500  # batch size
+    batch_size = 5000  # batch size
     total_movies = end_movie_id - start_movie_id + 1  # total movies
     num_batches = math.ceil(total_movies / batch_size)  # number of batches
     for batch_number in range(num_batches):
+        clear_files(file_paths)
         i = start_movie_id + batch_number * batch_size
         j = min(start_movie_id + (batch_number + 1) * batch_size, end_movie_id + 1)
         asyncio.run(main(i, j))
