@@ -1,9 +1,9 @@
 def remove_dups():
-    with open('links.txt', 'r') as file:
+    with open('txt/links.txt', 'r') as file:
         list1_lines = file.readlines()
 
     # Open and read the contents of list2.txt
-    with open('links2.txt', 'r') as file:
+    with open('txt/links2.txt', 'r') as file:
         list2_lines = file.readlines()
 
     combined_lines = list1_lines + list2_lines
@@ -12,7 +12,7 @@ def remove_dups():
     unique_lines = set(combined_lines)
 
     # Write the unique lines to a new file (combined.txt)
-    with open('combined.txt', 'w') as file:
+    with open('txt/combined.txt', 'w') as file:
         file.writelines(unique_lines)
 
 
@@ -38,7 +38,7 @@ def combined_csv():
 
 
     # Read combined.txt
-    with open('combined.txt', 'r') as file:
+    with open('txt/combined.txt', 'r') as file:
         combined_lines = file.readlines()
 
     # Extract URLs from douban.csv
@@ -48,21 +48,21 @@ def combined_csv():
     unique_lines = [line for line in combined_lines if line.strip() not in douban_urls]
 
     # Write the updated unique lines back to combined.txt
-    with open('combined.txt', 'w') as file:
+    with open('txt/combined.txt', 'w') as file:
         file.writelines(unique_lines)
 
 def failed_urls():
     existing_urls_combined = set()
-    with open("combined.txt", "r") as file:
+    with open("txt/combined.txt", "r") as file:
         for line in file:
             existing_urls_combined.add(line.strip())
 
     # Read existing URLs from failed_at_2.txt
     existing_urls_failed = set()
-    with open("failed_at_2.txt", "r") as file:
+    with open("txt/failed_at_2.txt", "r") as file:
         for line in file:
             existing_urls_failed.add(line.strip())
-    with open("failed_at_1.txt", "r") as file:
+    with open("txt/failed_at_1.txt", "r") as file:
         for line in file:
             existing_urls_failed.add(line.strip())
 
@@ -70,13 +70,13 @@ def failed_urls():
     urls_to_keep = existing_urls_combined - existing_urls_failed
 
     # Write remaining URLs to combined.txt
-    with open("combined.txt", "w") as file:
+    with open("txt/combined.txt", "w") as file:
         for link in urls_to_keep:
             file.write(f"{link}\n")
 
 
 if __name__ == '__main__':
-    file_to_clean = ["links.txt", "links2.txt", "combined.txt", "failed_at_2.txt", "failed_at_1.txt", "302.txt","douList.txt"]
+    file_to_clean = ["txt/links.txt", "txt/links2.txt", "txt/combined.txt", "txt/failed_at_2.txt", "txt/failed_at_1.txt", "txt/302.txt","txt/douList.txt"]
     for file in file_to_clean:
         remove_duplicates(file)
         print(f"{file} cleaned successfully.")

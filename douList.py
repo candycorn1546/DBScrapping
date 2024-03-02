@@ -27,7 +27,7 @@ async def fetch(session, num):  # function to fetch the page content
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36"
     ]  # user agents
     await asyncio.sleep(random.uniform(30, 50))  # sleep for a random time
-    logging.basicConfig(filename='error.log', level=logging.ERROR)  # set logging configuration
+    logging.basicConfig(filename='txt/error.log', level=logging.ERROR)  # set logging configuration
     headers = {'User-Agent': random.choice(user_agents)}
     url = f'https://movie.douban.com/subject/27195020/doulists?start={num}'  # construct the URL
     async with session.get(url, headers=headers, allow_redirects=False, ssl=False) as response:
@@ -39,7 +39,7 @@ async def fetch(session, num):  # function to fetch the page content
             links = {link.get('href') for link in soup.find_all('a', href=pattern)}
             new_urls_count = 0
             existing_nums_txt = set()
-            with open("douList.txt", "r") as file:
+            with open("txt/douList.txt", "r") as file:
                 for line in file:
                     existing_nums_txt.add(line.strip())
             with open('txt/Completed.txt', 'r') as file:
@@ -48,7 +48,7 @@ async def fetch(session, num):  # function to fetch the page content
             for link in links:
                 number_part = link.split('/')[-2]
                 if number_part not in existing_nums_txt:
-                    with open("douList.txt", "a") as file:
+                    with open("txt/douList.txt", "a") as file:
                         file.write(number_part + '\n')
                 new_urls_count += 1
             return new_urls_count

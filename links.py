@@ -26,7 +26,7 @@ async def fetch(session, num):  # function to fetch the page content
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36"
     ]  # user agents
     await asyncio.sleep(random.uniform(30, 50))  # sleep for a random time
-    logging.basicConfig(filename='error.log', level=logging.ERROR)  # set logging configuration
+    logging.basicConfig(filename='txt/error.log', level=logging.ERROR)  # set logging configuration
     headers = {'User-Agent': random.choice(user_agents)}
     url = f'https://www.douban.com/doulist/46390334/?start={num}&sort=seq&playable=0&sub_type='  # construct the URL
     async with session.get(url, headers=headers, allow_redirects=False, ssl=False) as response:
@@ -43,22 +43,22 @@ async def fetch(session, num):  # function to fetch the page content
 
             # Continue with the existing code to read from "failed_at_2.txt" and append to "links.txt"
             existing_urls_failed = set()
-            with open("failed_at_2.txt", "r") as file_failed:
+            with open("txt/failed_at_2.txt", "r") as file_failed:
                 for line_failed in file_failed:
                     existing_urls_failed.add(line_failed.strip())
-            with open("failed_at_1.txt", "r") as file_failed:
+            with open("txt/failed_at_1.txt", "r") as file_failed:
                 for line_failed in file_failed:
                     existing_urls_failed.add(line_failed.strip())
-            with open("links.txt", "r") as file_failed:
+            with open("txt/links.txt", "r") as file_failed:
                 for line_failed in file_failed:
                     existing_urls_failed.add(line_failed.strip())
-            with open("links2.txt", "r") as file_failed:
+            with open("txt/links2.txt", "r") as file_failed:
                 for line_failed in file_failed:
                     existing_urls_failed.add(line_failed.strip())
 
             new_urls_count = 0
             # Append new URLs to links.txt
-            with open("links2.txt", "a") as file:
+            with open("txt/links2.txt", "a") as file:
                 for link in links:
                     if link not in existing_urls_txt and link not in existing_urls_failed and link not in existing_urls_csv:
                         new_urls_count += 1

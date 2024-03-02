@@ -13,7 +13,7 @@ from bs4 import BeautifulSoup
 from googletrans import Translator
 import logging
 
-logging.basicConfig(filename='error.log', level=logging.ERROR)  # Set logging configuration
+logging.basicConfig(filename='txt/error.log', level=logging.ERROR)  # Set logging configuration
 console_handler = logging.StreamHandler(sys.stdout)
 console_handler.setLevel(logging.INFO)  # Set the desired logging level
 formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
@@ -47,7 +47,7 @@ async def get_movie_info(url, session):
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36"
     ]  # user agents
     await asyncio.sleep(random.uniform(30, 50))  # sleep for a random time
-    logging.basicConfig(filename='error.log', level=logging.ERROR)  # set logging configuration
+    logging.basicConfig(filename='txt/error.log', level=logging.ERROR)  # set logging configuration
     retry_count = 0
     max_retries = 5
     while retry_count < max_retries:
@@ -62,7 +62,7 @@ async def get_movie_info(url, session):
                 votes_span = soup.find('span', property='v:votes')  # find the votes span
                 if votes_span is None or language_span is None or episode_span is None:
                     print("failed at 1")
-                    with open("failed_at_1.txt", "a") as file:
+                    with open("txt/failed_at_1.txt", "a") as file:
                         file.write(f"{url}\n")
                     return None
                 year_span = soup.find('span', class_='year')  # find the year span
@@ -75,7 +75,7 @@ async def get_movie_info(url, session):
                 if language == '美国 / 英国' or int(
                         votes) < 20000 or year < 2000 or rating_tag is None or language == '美国' or language == '英国':
                     print("failed at 2")
-                    with open("failed_at_2.txt", "a") as file:
+                    with open("txt/failed_at_2.txt", "a") as file:
                         file.write(f"{url}\n")
                     return None
                 title_span = soup.find('span', {'property': 'v:itemreviewed'})  # find the title span
@@ -119,7 +119,7 @@ async def get_movie_info(url, session):
                     continue
                 else:
                     print("failed at 3")
-                    with open("302.txt", "a") as file:
+                    with open("txt/302.txt", "a") as file:
                         file.write(f"{url}\n")
                     return None
             else:
@@ -177,7 +177,7 @@ async def scrape_unique_urls(text_file, csv_file):
 
 async def main():
     start_time = time.time()
-    text_file = 'combined.txt'
+    text_file = 'txt/combined.txt'
     csv_file = 'douban.csv'
     async with aiohttp.ClientSession() as session:
         movie_data = await scrape_unique_urls(text_file, csv_file)

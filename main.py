@@ -54,7 +54,7 @@ async def get_movie_info(movie_id, session):
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36"
     ]  # user agents
     await asyncio.sleep(random.uniform(30, 50))  # sleep for a random time
-    logging.basicConfig(filename='error.log', level=logging.ERROR)  # set logging configuration
+    logging.basicConfig(filename='txt/error.log', level=logging.ERROR)  # set logging configuration
     retry_count = 0
     max_retries = 3
     while retry_count < max_retries:
@@ -68,7 +68,7 @@ async def get_movie_info(movie_id, session):
                 episode_span = soup.find('span', class_='pl', string='集数:')  # find the episode span
                 votes_span = soup.find('span', property='v:votes')  # find the votes span
                 if votes_span is None or language_span is None or episode_span is None:
-                    with open("failed_at_1.txt", "a") as file:
+                    with open("txt/failed_at_1.txt", "a") as file:
                         file.write(f"{movie_id}\n")
                     return None
                 votes = int(votes_span.text.strip())
@@ -79,7 +79,7 @@ async def get_movie_info(movie_id, session):
                 if language == '美国 / 英国' or int(
                         votes) < 60000 or year < 2000 or rating_tag is None or language == '美国' or language == '英国':
                     print("failed at 2")
-                    with open("failed_at_2.txt", "a") as file:
+                    with open("txt/failed_at_2.txt", "a") as file:
                         file.write(f"{movie_id}\n")
                     return None
                 title_span = soup.find('span', {'property': 'v:itemreviewed'})  # find the title span
@@ -122,7 +122,7 @@ async def get_movie_info(movie_id, session):
                     await asyncio.sleep(5)
                     continue
                 else:
-                    with open("302.txt", "a") as file:
+                    with open("txt/302.txt", "a") as file:
                         file.write(f"{movie_id}\n")
                     return None
             else:

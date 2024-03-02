@@ -28,7 +28,7 @@ async def get_movie_info(movie_id, session):
         "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.2 Safari/605.1.15",
     ]  # user agents
 
-    logging.basicConfig(filename='error.log', level=logging.ERROR)
+    logging.basicConfig(filename='../txt/error.log', level=logging.ERROR)
 
     url = f'https://movie.douban.com/subject/{movie_id}/'
     headers = {'User-Agent': random.choice(user_agents)}
@@ -77,7 +77,7 @@ async def main():
         try:
             df = pd.DataFrame(movie_data)
             # Write to CSV file
-            with open('douban.csv', 'a', newline='', encoding='utf-8') as f:
+            with open('../douban.csv', 'a', newline='', encoding='utf-8') as f:
                 df.to_csv(f, index=False, header=f.tell()==0)
             # Write to Excel file
             file_exists = os.path.exists('douban.xlsx')
