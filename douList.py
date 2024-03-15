@@ -29,7 +29,7 @@ async def fetch(session, num):  # function to fetch the page content
     await asyncio.sleep(random.uniform(30, 50))  # sleep for a random time
     logging.basicConfig(filename='txt/error.log', level=logging.ERROR)  # set logging configuration
     headers = {'User-Agent': random.choice(user_agents)}
-    url = f'https://movie.douban.com/subject/27195020/doulists?start={num}'  # construct the URL
+    url = f'https://movie.douban.com/subject/23775560/doulists?start={num}'  # construct the URL
     async with session.get(url, headers=headers, allow_redirects=False, ssl=False) as response:
         if response.status == 200:
             print(num, 'IN')

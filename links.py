@@ -28,7 +28,7 @@ async def fetch(session, num):  # function to fetch the page content
     await asyncio.sleep(random.uniform(30, 50))  # sleep for a random time
     logging.basicConfig(filename='txt/error.log', level=logging.ERROR)  # set logging configuration
     headers = {'User-Agent': random.choice(user_agents)}
-    url = f'https://www.douban.com/doulist/46390334/?start={num}&sort=seq&playable=0&sub_type='  # construct the URL
+    url = f'https://www.douban.com/doulist/111454660/?start={num}&sort=seq&playable=0&sub_type='  # construct the URL
     async with session.get(url, headers=headers, allow_redirects=False, ssl=False) as response:
         if response.status == 200:
             print(num, 'IN')
@@ -38,10 +38,9 @@ async def fetch(session, num):  # function to fetch the page content
                      link.get('href').startswith('https://movie.douban.com/subject/')}
             existing_urls_txt = set()
             existing_urls_csv = set()
-            douban_df = pd.read_csv("douban.csv")  # Replace "your_csv_file.csv" with your actual CSV file name
+            douban_df = pd.read_csv("douban.csv")
             existing_urls_csv.update(douban_df['URL'])
 
-            # Continue with the existing code to read from "failed_at_2.txt" and append to "links.txt"
             existing_urls_failed = set()
             with open("txt/failed_at_2.txt", "r") as file_failed:
                 for line_failed in file_failed:
@@ -52,13 +51,9 @@ async def fetch(session, num):  # function to fetch the page content
             with open("txt/links.txt", "r") as file_failed:
                 for line_failed in file_failed:
                     existing_urls_failed.add(line_failed.strip())
-            with open("txt/links2.txt", "r") as file_failed:
-                for line_failed in file_failed:
-                    existing_urls_failed.add(line_failed.strip())
 
             new_urls_count = 0
-            # Append new URLs to links.txt
-            with open("txt/links2.txt", "a") as file:
+            with open("txt/links.txt", "a") as file:
                 for link in links:
                     if link not in existing_urls_txt and link not in existing_urls_failed and link not in existing_urls_csv:
                         new_urls_count += 1
